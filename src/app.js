@@ -1,5 +1,6 @@
 
 import { useLaunch } from '@tarojs/taro'
+import 'antd-mobile/es/global'
 import './app.scss'
 
 function App({ children }) {
