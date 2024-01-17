@@ -1,7 +1,8 @@
 import { View, Image, Input, Button } from '@tarojs/components'
 import Taro, { useLoad } from '@tarojs/taro'
+import axios from 'axios';
 import { useState } from 'react'
-import '@tarojs/taro/html5.css';
+// import '@tarojs/taro/html5.css';
 import './index.scss'
 
 export default function Index() {
@@ -9,7 +10,6 @@ export default function Index() {
     avatarUrl: '',
     nickName: '',
     code: '',
-    openid: ''
   });
 
   useLoad(() => {
@@ -29,37 +29,43 @@ export default function Index() {
   }
 
   const getOpenId = async () => {
-    Taro.request({
-      method: 'POST',
-      url: 'http://kc.it663.com:8020/admin/realms/master/clients-initial-access',
-      // url: "eyJhbGciOiJIUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI1YjhmZmY5Zi00ZGZlLTQ0YjItYmI0Yy1iYmEyZmQzMGJiYmEifQ.eyJleHAiOjE3MDU1ODgwOTksImlhdCI6MTcwNDcyNDA5OSwianRpIjoiMzM1ZWNhYjgtYmI0NC00ZTUzLTljOWMtYWQ4NTU5M2M3ZWMwIiwiaXNzIjoiaHR0cDovL2tjLml0NjYzLmNvbTo4MDIwL3JlYWxtcy9tYXN0ZXIiLCJhdWQiOiJodHRwOi8va2MuaXQ2NjMuY29tOjgwMjAvcmVhbG1zL21hc3RlciIsInR5cCI6IkluaXRpYWxBY2Nlc3NUb2tlbiJ9.0CayhA82rsGnrzCrELS9FU9xRcSVgYirqpDJnsoE6CM",
-      data: {
-        count: 1,
-        expiration: 864000
-        // header: 'Authorization'
-      },
-      success: function (res) {
-        console.log(res)
-      }
+    const res = await Taro.login();
+    const { code } = res;
+    const appid = 'wxb8304664218ce979';
+    const secret = '468d6417c395e992b7064c785eae2534';
+    const data = {
+      appid,
+      secret,
+      code,
+      grant_type: 'authorization_code'
+    }
+    const url = `https://api.weixin.qq.com/sns/jscode2session?appid=${appid}&secret=${secret}&js_code=${code}&grant_type=authorization_code`;
+
+    Taro.showLoading({
+      title: 'loading...',
+      mask: true,
     })
+
+    Taro.request({
+      url,
+      method: 'GET',
+      data,
+      success: function (res) {
+        const { openid, session_key } = res.data;
+        Taro.redirectTo({
+          url: `/pages/login/index?openid=${openid}&session_key=${session_key}`,
+        })
+      }
+    });
   }
 
   const onSubmit = () => {
-    // getOpenId();
-
-    // 跳转到目的页面，打开新页面
-    Taro.redirectTo({
-      url: '/pages/login/index',
-    })
-
-    return false;
-
-    if(!state.nickName){
+    if (!state.nickName) {
       Taro.showToast({
         title: '请输入用户名',
         mask: true,
         icon: 'none',
-        success: function() {
+        success: function () {
           setTimeout(() => {
             Taro.hideToast();
           }, 1000);
@@ -68,15 +74,7 @@ export default function Index() {
       return false;
     }
 
-    Taro.showLoading({
-      title: 'loading...',
-      mask: true,
-      success: function() {
-        setTimeout(() => {
-          Taro.hideLoading();
-        }, 3000);
-      }
-    })
+    getOpenId();
   }
 
   const getNickName = e => {
