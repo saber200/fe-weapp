@@ -2,7 +2,7 @@ import { View, Image, Input, Button } from '@tarojs/components'
 import Taro, { useLoad } from '@tarojs/taro'
 import axios from 'axios';
 import { useState } from 'react'
-// import '@tarojs/taro/html5.css';
+import MyFirstGrid from '../../components/page';
 import './index.scss'
 
 export default function Index() {
@@ -86,11 +86,12 @@ export default function Index() {
 
   return (
     <View className='index'>
-      <Button class="avatar-wrapper" open-type="chooseAvatar" onChooseavatar={onChooseAvatar}>
+      <MyFirstGrid />
+      {/* <Button class="avatar-wrapper" open-type="chooseAvatar" onChooseavatar={onChooseAvatar}>
         <Image class="avatar" src={state.avatarUrl}></Image>
       </Button>
       <Input type="nickname" placeholder="请输入昵称" onBlur={getNickName} onInput={getNickName} />
-      <Button type='primary' onClick={onSubmit}>确定</Button>
+      <Button type='primary' onClick={onSubmit}>确定</Button> */}
     </View>
   )
 }
