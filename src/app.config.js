@@ -4,6 +4,7 @@ export default defineAppConfig({
     'pages/index/index',
     'pages/login/index',
     'pages/home/index',
+    'pages/children/index',
   ],
   routes: [
     // {
@@ -25,6 +26,11 @@ export default defineAppConfig({
       // Home
       path: 'home',
       page: 'pages/home/index',
+    },
+    {
+      // Home
+      path: 'children',
+      page: 'pages/children/index',
     },
   ],
   window: {

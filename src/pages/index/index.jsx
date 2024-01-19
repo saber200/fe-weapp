@@ -55,6 +55,12 @@ export default function Index() {
         Taro.redirectTo({
           url: `/pages/login/index?openid=${openid}&session_key=${session_key}&avatarUrl=${state.avatarUrl}&nickName=${state.nickName}`,
         })
+      },
+      fail: function(err){
+        Taro.showToast({
+          title: JSON.stringify(err),
+          mask: true,
+        })
       }
     });
   }
