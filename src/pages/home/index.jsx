@@ -1,9 +1,17 @@
 import Taro from '@tarojs/taro'
 import { View } from '@tarojs/components'
-import { Tabbar, Image, Button, Popup, List } from "@taroify/core"
+import { Tabbar, Image, Button, Popup } from "@taroify/core"
 import { FriendsOutlined, HomeOutlined, Search, SettingOutlined } from "@taroify/icons"
+import { useEffect, useState } from 'react'
+import setSty from '@/utils/edit/setSty';
+import data from '@/pageconfig';
+import {
+  EditInput,
+  EditButton,
+  EditTable,
+  EditSelect
+} from '@/components';
 import './index.scss'
-import { useState } from 'react'
 
 export default function Home() {
   const [tabKey, setTabKey] = useState('index');
@@ -14,7 +22,7 @@ export default function Home() {
   })
 
   const onChangeTabKey = (val) => {
-    if(val === 'page2'){
+    if (val === 'page2') {
       setOpen(true);
     }
 
@@ -28,8 +36,24 @@ export default function Home() {
     })
   }
 
+  const setComponents = (item) => {
+    console.log(item.name)
+    switch (item.name) {
+      case 'Input' || 'input':
+        return <EditInput style={setSty(item.render.layout)} attribute={item.render.props} />
+      case 'button' || 'Button':
+        return <EditButton style={setSty(item.render.layout)} attribute={item.render.props} />
+      case 'select':
+        return <EditSelect style={setSty(item.render.layout)} attribute={item.render.props} />
+      case 'Table':
+        return <EditTable style={setSty(item.render.layout)} attribute={item.render.props} />
+      default:
+        return null
+    }
+  }
+
   const tabPage = () => {
-    switch(tabKey){
+    switch (tabKey) {
       case 'user':
         return (
           <div className='out_login_page'>
@@ -40,12 +64,10 @@ export default function Home() {
             <Button className='out_login_btn' color="primary" onClick={outLogin}>退出登陆</Button>
           </div>
         )
-      default: 
-        return (
-          <div>
-            
-          </div>
-        )
+      default:
+        return data.data.map(item => {
+          return setComponents(item);
+        })
     }
   }
 
@@ -54,6 +76,15 @@ export default function Home() {
       url: `/pages/children/index?pageName=${val}`,
     })
   }
+
+  const getJson = () => {
+    // const a = Taro.request('../../pageconfig.json');
+    // console.log(pageConfig.data);
+  }
+
+  useEffect(() => {
+    getJson();
+  }, [])
 
   return (
     <View className='index'>

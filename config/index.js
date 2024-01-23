@@ -2,6 +2,7 @@ import { defineConfig } from '@tarojs/cli'
 
 import devConfig from './dev'
 import prodConfig from './prod'
+const path = require('path')
 
 // https://taro-docs.jd.com/docs/next/config#defineconfig-辅助函数
 export default defineConfig(async (merge, { command, mode }) => {
@@ -21,7 +22,8 @@ export default defineConfig(async (merge, { command, mode }) => {
       ['@tarojs/plugin-html', {
         // 过滤 vant 组件库的前缀：van-
         pxtransformBlackList: [/demo-/, /van-/]
-      }]
+      }],
+      ["import", { "libraryName": "antd-mobile", "libraryDirectory": "es/components", "style": false}]
     ],
     defineConstants: {
     },
@@ -92,7 +94,10 @@ export default defineConfig(async (merge, { command, mode }) => {
           enable: false, // 默认为 false，如需使用 css modules 功能，则设为 true
         }
       }
-    }
+    },
+    alias: {
+      '@': path.resolve(__dirname, '..', 'src')
+    },
   }
   if (process.env.NODE_ENV === 'development') {
     // 本地开发构建配置（不混淆压缩）

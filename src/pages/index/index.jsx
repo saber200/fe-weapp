@@ -1,6 +1,5 @@
 import { View, Image, Input, Button } from '@tarojs/components'
 import Taro, { useLoad } from '@tarojs/taro'
-import axios from 'axios';
 import { useEffect, useState } from 'react'
 import './index.scss'
 

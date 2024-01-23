@@ -54,14 +54,15 @@
     "@tarojs/runtime": "3.6.22",
     "@tarojs/shared": "3.6.22",
     "@tarojs/taro": "3.6.22",
-    "@vant/weapp": "^1.11.2",
+    "ali-react-table": "^2.6.1",
     "antd-mobile": "^5.34.0",
     "axios": "^1.6.5",
     "babel-plugin-import": "^1.13.8",
     "import": "^0.0.6",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
-    "react-grid-layout": "^1.4.4"
+    "react-grid-layout": "^1.4.4",
+    "taro-ui": "^3.2.2"
   },
   "devDependencies": {
     "@babel/core": "^7.8.0",

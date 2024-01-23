@@ -4,7 +4,6 @@ import 'antd-mobile/es/global'
 import './app.scss'
 
 function App({ children }) {
-
   useLaunch(() => {
     console.log('App launched.')
   })
