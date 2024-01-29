@@ -1,24 +1,40 @@
 import React, { useEffect, useState } from "react"
+import HOComponent from '@/components/Create';
 import { Input } from '@taroify/core';
 
-export default function EditInput(props) {
-  const [config, setConfig] = useState(props);
-  const { style, attribute: propsAttribute } = props;
+const inputStyle = {
+  border: '1px solid #c9c9c9',
+  borderRadius: '4px'
+}
+
+const EditInput = ({ style, config, setMockJson, pageConfig }) => {
+  // const [state, setState] = useState(config);
+  const { props: attribute, event } = config.render
+  const [value, setValue] = useState(attribute.value);
+
+  const handleChange = e => {
+    if(event.onChange){
+      event.onChange();
+    };
+
+    setValue(e.target.value);
+  }
 
   useEffect(() => {
-    const obj = {};
-    propsAttribute.map(item => {
-      obj[item.name] = item.defaultValue || item.value;
-    });
-    setConfig(obj);
-  }, [])
+    setValue(attribute.value);
+    // console.log(style)
+  }, [attribute.value])
 
   return (
-    <>
-      <Input
-        style={{ ...style, border: '1rpx solid #f1f1f1' }}
-        {...config}
-      />
-    </>
+    <Input
+    // {...attribute}
+    {...event}
+    value={value}
+    defaultValue={attribute.defaultValue || attribute.value}
+    onChange={handleChange}
+    style={{ ...style, ...inputStyle }}
+    />
   )
 }
+
+export default HOComponent(EditInput);

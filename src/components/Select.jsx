@@ -4,11 +4,11 @@ import { Popup, Picker, Toast, Button } from '@taroify/core';
 export default function EditSelect(props) {
   const [open, setOpen] = useState(false);
   const [config, setConfig] = useState(props);
-  const { style, attribute: propsAttribute } = props;
+  const { style, mockJson, mockIndex } = props;
 
   useEffect(() => {
     const obj = {};
-    propsAttribute.map(item => { obj[item.name] = item.defaultValue || item.value });
+    mockJson.data[mockIndex].map(item => { obj[item.name] = item.defaultValue || item.value });
     setConfig(obj);
   }, [])
 

@@ -6,7 +6,7 @@ export default function setSty(sty) {
 
   let { w, h, x, y } = sty;
   w = w * gridpx - 20;
-  h = h * gridpx - 10;
+  h = h * gridpx - 5;
   x = x * gridpx + 10;
   y = y * gridpx + 10;
 

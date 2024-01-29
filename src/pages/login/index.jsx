@@ -18,7 +18,8 @@ export default function Login() {
     password: '',
     access_token: '',
     expires_in: 0,
-    isLogin: false
+    isLogin: false,
+    cookies: []
   });
 
   // 判断是否登陆 & 登陆是否过期
@@ -27,7 +28,6 @@ export default function Login() {
     const nowTime = new Date().getTime();
 
     if (!expires || nowTime >= expires) {
-      // Taro.clearStorageSync();
       queryInfo();
     } else {
       Taro.redirectTo({
@@ -36,10 +36,48 @@ export default function Login() {
     }
   }
 
+  // 获取cookies
+  const getCookies = (userinfo) => {
+    const { id } = userinfo;
+    const url = `http://kc.it663.com:8020/admin/realms/master/users/${id}/impersonation`
+    return Taro.request({
+      url,
+      method: 'POST',
+      header: {
+        'Content-type': 'application/json',
+        'Authorization': `Bearer ${Taro.getStorageSync('admin_access_token')}`
+      },
+      success: function(res){
+        setState({
+          ...state,
+          cookies: res.cookies
+        })
+        return res;
+      }
+    })
+  }
+
   // 判断当前用户是否为关联用户
   const queryInfo = async () => {
     const result = await getUserList();
     const list = result.data.filter(item => item.firstName === state.openid);
+
+    // if(list.length > 0){
+    //   getCookies(list[0]).then(res => {
+    //     console.log(res.cookies)
+    //     Taro.request({
+    //       url: 'http://kc.it663.com:8020/realms/master/account',
+    //       header: {
+    //         'Content-type': 'application/json',
+    //         'Authorization': `Bearer ${Taro.getStorageSync('admin_access_token')}`,
+    //         'cookie': res.cookies.toString()
+    //       },
+    //       success: function(accountRes){
+    //         console.log(accountRes);
+    //       }
+    //     })
+    //   });
+    // }
 
     setState({
       ...state,
@@ -141,6 +179,7 @@ export default function Login() {
         'Content-type': 'application/x-www-form-urlencoded'
       },
       success: function (res) {
+        console.log(res);
         const {
           access_token,
           expires_in
@@ -225,7 +264,7 @@ export default function Login() {
     }
 
     // 当前无用户登陆或用户过期 清除当前用户状态
-    Taro.clearStorageSync();
+    // Taro.clearStorageSync();
 
     // 注册新用户，获取管理员token用来创建用户
     const url = 'http://kc.it663.com:8020/realms/master/protocol/openid-connect/token';
@@ -254,12 +293,13 @@ export default function Login() {
 
         Taro.setStorageSync('admin_access_token', access_token)
         Taro.setStorageSync('admin_expires', expires_time)
+
+        onGetExpires();
       }
     })
   }
 
   useEffect(() => {
-    onGetExpires();
     getAdminToken();
   }, [])
 

@@ -23,7 +23,6 @@ export default defineConfig(async (merge, { command, mode }) => {
         // 过滤 vant 组件库的前缀：van-
         pxtransformBlackList: [/demo-/, /van-/]
       }],
-      ["import", { "libraryName": "antd-mobile", "libraryDirectory": "es/components", "style": false}]
     ],
     defineConstants: {
     },

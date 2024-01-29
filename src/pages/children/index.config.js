@@ -1,5 +1,5 @@
 export default definePageConfig({
-  navigationBarTitleText: '首页',
+  navigationBarTitleText: '子页面',
   // usingComponents: {
   //   'ec-canvas': '../../components/ec-canvas/ec-canvas',
   // }

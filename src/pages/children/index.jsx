@@ -1,21 +1,24 @@
-import { View } from '@tarojs/components'
-import Taro from '@tarojs/taro'
+import { View, Image, Input, Button } from '@tarojs/components'
+import Taro, { useLoad, getCurrentInstance } from '@tarojs/taro'
 import { useEffect, useState } from 'react'
-import { getCurrentInstance } from '@tarojs/runtime'
+// import { getPageConfigs } from '@/utils/apis';
 import './index.scss'
 
-const instance = getCurrentInstance();
+export default function Index(props) {
+  const instance = getCurrentInstance();
+  const [id] = useState(instance.router.params.pageId);
 
-export default function Children() {
-  const [page, setPage] = useState(instance.router.params.pageName);
+  const initPageConfig = async () => {
+    // const result = await getJson(id);
+    // console.log(result)
+  }
 
   useEffect(() => {
-
+    initPageConfig();
   }, [])
 
   return (
-    <View className='index'>
-      页面{page}
-    </View>
+    <div>123</div>
+    // <Home isChildren={true} />
   )
 }

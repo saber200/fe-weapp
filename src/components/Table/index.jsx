@@ -1,14 +1,11 @@
-// 自己简单封装的表格组件，taro 和微信都没有table组件
-import { Component } from 'react'
+import React from "react"
 import { View } from '@tarojs/components'
 import dataSource from './defaultData';
 import columns from './defaultColumns';
+import HOComponent from '@/components/Create';
 import './style.scss'
 
-//原理 循环生成表头，循环数据根据表头填入每一列
-export default function EditTable(props) {
-  const { style, attribute: propsAttribute } = props;
-
+function EditTable({ style }) {
   return (
     <div style={{ ...style }}>
       <View className="table">
@@ -56,3 +53,9 @@ export default function EditTable(props) {
     </div>
   )
 }
+
+const Table = (props) => {
+  return <EditTable {...props} />
+}
+
+export default HOComponent(Table);

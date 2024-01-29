@@ -1,24 +1,16 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect } from "react"
+import HOComponent from '@/components/Create';
 import { Button } from '@taroify/core';
 
-export default function EditButton(props) {
-  const [config, setConfig] = useState(props);
-  const { style, attribute: propsAttribute } = props;
-
-  useEffect(() => {
-    const obj = {};
-    propsAttribute.map(item => {
-      obj[item.name] = item.defaultValue || item.value;
-    });
-    setConfig(obj);
-  }, [])
+const EditButton = ({ style, config }) => {
+  const { props: attribute } = config.render
 
   return (
-    <>
-      <Button
-        style={{ ...style }}
-        {...config}
-      />
-    </>
+    <Button
+    style={{ ...style }}
+    {...config.render.event}
+    >{config.render.props.name}</Button>
   )
 }
+
+export default HOComponent(EditButton);

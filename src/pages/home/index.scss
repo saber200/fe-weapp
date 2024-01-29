@@ -1,9 +1,24 @@
-.nav-buttons{
+.nav-buttons {
   position: fixed;
   bottom: 0;
   left: 0;
   width: 100%;
-  // height: ;
+}
+
+.tabs-box {
+  display: flex;
+  flex-direction: column-reverse;
+  height: 100vh;
+
+  .taroify-tabs {
+    height: 100%;
+  }
+
+  .taroify-tabs__content {
+    height: 100%;
+    overflow: hidden;
+    overflow-y: scroll;
+  }
 }
 
 .out_login_page {
@@ -17,6 +32,7 @@
     margin-top: 100px;
     color: #fff;
   }
+
   div {
     display: block;
     width: 300rpx;
@@ -25,26 +41,29 @@
     margin-top: 100px;
     color: #000;
   }
-  .avatar-wrapper{
+
+  .avatar-wrapper {
     width: 100rpx;
     height: 100rpx;
     overflow: hidden;
     border-radius: 100%;
     padding: 0;
     margin-top: 300rpx;
-    image{
+
+    image {
       width: 100rpx;
       height: 100rpx;
     }
   }
 }
 
-.page_route_btn{
+.page_route_btn {
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  >div{
+
+  >div {
     width: 100%;
     height: 100rpx;
     line-height: 100rpx;
