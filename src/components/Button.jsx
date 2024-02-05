@@ -7,9 +7,10 @@ const EditButton = ({ style, config }) => {
 
   return (
     <Button
-    style={{ ...style }}
+    style={{ ...style, fontSize: '22rpx' }}
+    {...attribute}
     {...config.render.event}
-    >{config.render.props.name}</Button>
+    >{attribute.text}</Button>
   )
 }
 

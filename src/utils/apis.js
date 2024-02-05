@@ -1,9 +1,12 @@
 import Taro from '@tarojs/taro'
+// const baseUrl = 'http://154.221.31.52:5000'
+const baseUrl = 'http://localhost:5000'
+
 
 const onRequestGet = url => {
   const result = Taro.request({
     method: 'GET',
-    url: url,
+    url: `${baseUrl}${url}`,
     header: {
       'Content-type': 'application/json',
     },
@@ -19,7 +22,7 @@ const onRequestPOST = params => {
   const { url, data } = params;
   return Taro.request({
     method: 'POST',
-    url: url,
+    url: `${baseUrl}${url}`,
     data: data,
     header: {
       'Content-type': 'application/json',
@@ -30,10 +33,15 @@ const onRequestPOST = params => {
   })
 }
 
-const getPageConfigs = id => onRequestGet(`http://154.221.31.52:5000/students?id=${id}`);
-const getMenus = () => onRequestGet('http://154.221.31.52:5000/getMenus');
+const getPageConfigs = id => onRequestGet(`/students?id=${id}`);
+const getMenus = () => onRequestGet('/getMenus');
+
+const getUserInfo = username => onRequestGet(`/getUserInfo?username=${username}`);
+const setUserInfo = params => onRequestPOST(params)
 
 export default {
   getPageConfigs,
-  getMenus
+  getMenus,
+  getUserInfo,
+  setUserInfo
 }

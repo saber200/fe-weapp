@@ -1,7 +1,6 @@
-import Taro, { getCurrentInstance } from '@tarojs/taro'
+import Taro from '@tarojs/taro'
 import { View } from '@tarojs/components'
-import { Tabbar, Tabs, Image, Button, Popup, Backdrop, Loading } from "@taroify/core"
-import { AppsOutlined, HomeOutlined, SettingOutlined } from "@taroify/icons"
+import { Tabs, Image, Button } from "@taroify/core"
 import { useEffect, useState } from 'react'
 import apis from '@/utils/apis';
 import setSty from '@/utils/edit/setSty';
@@ -11,22 +10,80 @@ import {
   EditTable,
   EditSelect
 } from '@/components';
-import './index.scss'
+import {
+  WapHomeOutlined,
+  Bars,
+  FriendsOutlined
+} from "@taroify/icons"
+import './index.scss';
+
+const icons = {
+  icon_1: <WapHomeOutlined />,
+  icon_2: <Bars />,
+  icon_3: <FriendsOutlined />
+}
+
+const TabPage = props => {
+  const { mockJson, setComponents, setMockJson, id } = props;
+
+  const getJson = async (id = 'index') => {
+    const result = await apis.getPageConfigs(id);
+    const pageConfig = result.data.json;
+    const newJsonData = [];
+
+    pageConfig.data.map(item => {
+      if (item.layout) {
+        newJsonData.push(item);
+      }
+    })
+
+    pageConfig.data = newJsonData;
+
+    setMockJson(pageConfig);
+  }
+
+  useEffect(() => {
+    getJson(id);
+  }, [id])
+
+  return (
+    <div>
+      {mockJson.data.map((item, inx) => {
+        return setComponents(inx);
+      })}
+    </div>
+  )
+}
+
+const TabsPanie = props => {
+  const { label, icon } = props;
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      {icon}
+      <span style={{ fontSize: '24rpx' }}>{label}</span>
+    </div>
+  )
+}
 
 export default function Home() {
   const [querylist, setQuerylist] = useState([]);
-  const [menus, setMenus] = useState([]);
   const [mockJson, setMockJson] = useState({ data: [] });
   const [tabKey, setTabKey] = useState('index');
-  const [open, setOpen] = useState(false);
-  const [backDropOpen, setBackDropOpen] = useState(false)
+  const [childrenKey, setChildrenKey] = useState('index');
+  const [scrollType, setScrollType] = useState('page');
   const [userinfo] = useState({
     nickName: Taro.getStorageSync('nickName'),
     avatarUrl: Taro.getStorageSync('avatarUrl')
   })
 
   const onChangeTabKey = (val) => {
+    // const childkey = querylist.filter(item => item.key === val)[0].children[0].value;
+    // setChildrenKey(childkey);
     setTabKey(val);
+  }
+
+  const onChangeChildrenTabKey = val => {
+    setChildrenKey(val)
   }
 
   const outLogin = () => {
@@ -38,8 +95,6 @@ export default function Home() {
 
   const setComponents = (inx) => {
     switch (mockJson?.data[inx]?.name) {
-      case 'hhh':
-        return null
       case 'Input' || 'input':
         return <EditInput style={setSty(mockJson.data[inx].layout)} mockIndex={inx} setMockJson={setMockJson} mockJson={mockJson} />
       case 'button' || 'Button':
@@ -53,100 +108,74 @@ export default function Home() {
     }
   }
 
-  const tabPage = (id = 'index') => {
-    switch (id) {
-      case 'user':
-        return (
-          <div className='out_login_page'>
-            <div className="avatar-wrapper">
-              <Image src={userinfo.avatarUrl}></Image>
-            </div>
-            <div>{userinfo.nickName}</div>
-            <Button className='out_login_btn' color="primary" onClick={outLogin}>退出登陆</Button>
-          </div>
-        )
-      default:
-        return mockJson.data.map((item, inx) => {
-          return setComponents(inx);
-        })
-    }
-  }
-
-  const onJumpChildrenPage = async (id) => {
-    setBackDropOpen(true)
-    getJson(id)
-  }
-
-  const getJson = async (id = 'index') => {
-    const result = await apis.getPageConfigs(id);
+  const initMenus = async () => {
     const menuResult = await apis.getMenus();
-    const pageConfig = result.data.json;
-    const newJsonData = [];
-
-    pageConfig.data.map(item => {
-      if (item.layout) {
-        newJsonData.push(item);
-      }
-    })
-
-    pageConfig.data = newJsonData;
     const menuss = menuResult.data.data.filter(item => item.key !== 'index')
-
-    setMockJson(pageConfig);
-    setBackDropOpen(false)
+    console.log(menuResult.data.scroll_type)
+    setScrollType(menuResult.data.scroll_type);
     setQuerylist(menuss);
   }
 
-  const setListMenus = (key) => {
-    const menuss = querylist.filter(item => item.key === key)
-
-    setMenus(menuss[0].children);
-    setOpen(true)
-  }
-
   useEffect(() => {
-    getJson();
+    initMenus();
   }, [])
 
   return (
     <View className='index'>
-      {/* {tabPage()} */}
-      {/* <Tabs fixed placeholder defaultValue={tabKey} onChange={onChangeTabKey}> */}
       <Tabs
         defaultValue={tabKey}
         onChange={onChangeTabKey}
-        swipeable
+        swipeable={scrollType === 'page'}
         lazyRender
         className='tabs-box'
       >
         <Tabs.TabPane
           value="index"
-          title="欢迎页"
-          onClick={() => onJumpChildrenPage('index')}
-        >{tabPage()}</Tabs.TabPane>
+          title={<TabsPanie label='欢迎页' icon={icons.icon_1} />}
+        >
+          <TabPage
+            setComponents={setComponents}
+            mockJson={mockJson}
+            id="index"
+            setMockJson={setMockJson}
+          />
+        </Tabs.TabPane>
         {querylist.map(item => {
           return (
             <Tabs.TabPane
-            title={item.label}
-            value={item.key}
-            className='tabs-box'
-            style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}
+              title={<TabsPanie label={item.label} icon={icons[item.icon_name]} />}
+              value={item.key}
+              className='tabs-box'
+              style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}
             >
               <Tabs
                 defaultValue={item.children[0].value}
-                swipeable
+                swipeable={scrollType === 'tabs'}
+                lazyRender
+                onChange={onChangeChildrenTabKey}
               >
                 {item.children.map(children => {
-                  return <Tabs.TabPane title={children.label} value={children.value}>{tabPage(children.value)}</Tabs.TabPane>  
+                  return (
+                    <Tabs.TabPane
+                      title={children.label}
+                      value={children.value}
+                    >
+                      <TabPage
+                        mockJson={mockJson}
+                        setMockJson={setMockJson}
+                        setComponents={setComponents}
+                        id={childrenKey}
+                      />
+                    </Tabs.TabPane>
+                  )
                 })}
               </Tabs>
             </Tabs.TabPane>
           )
-          // return <Tabs.TabPane value={item.key} onClick={() => setListMenus(item.key)}>{tabPage()}</Tabs.TabPane>
         })}
         <Tabs.TabPane
           value="user"
-          title="我的"
+          title={<TabsPanie label='我的' icon={icons.icon_3} />}
         >
           <div className='out_login_page'>
             <div className="avatar-wrapper">
@@ -157,18 +186,6 @@ export default function Home() {
           </div>
         </Tabs.TabPane>
       </Tabs>
-
-      {/* 弹出路由 */}
-      {/* <Popup open={open} rounded placement="bottom" style={{ height: '30%' }} onClick={() => setOpen(false)}>
-        <div className='page_route_btn'>
-          {menus.map(item => {
-            return <div onClick={() => onJumpChildrenPage(item.value)} key={item.value}>{item.label}</div>
-          })}
-        </div>
-      </Popup>
-      <Backdrop open={backDropOpen}>
-        <Loading style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }} />
-      </Backdrop> */}
     </View>
   )
 }

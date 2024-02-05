@@ -1,13 +1,20 @@
-import React from "react"
+import React, { useEffect, useState } from "react"
 import { View } from '@tarojs/components'
 import dataSource from './defaultData';
 import columns from './defaultColumns';
 import HOComponent from '@/components/Create';
+import CardTable from './cardTable';
 import './style.scss'
 
-function EditTable({ style }) {
+function EditTable({ style, config }) {
+  const [value, setValue] = useState();
+  const { event } = config.render;
+
+  // const dataSource = config?.render?.datasource?.customerData || [];
+  // const columns = config.render.props.columns;
+
   return (
-    <div style={{ ...style }}>
+    <div style={{ ...style, overflowY: 'auto' }}>
       <View className="table">
         <View className="tr bg-header">
           {
@@ -35,7 +42,7 @@ function EditTable({ style }) {
                     }
                     else {
                       return (
-                        <View className="td" style={{ minWidth: `${item2.width}rpx` }}>
+                        <View className="td" style={{ minWidth: `${item2.width}rpx` }} {...event}>
                           {
                             item[item2.dataIndex]  //根据表头填数据
                           }
@@ -55,7 +62,8 @@ function EditTable({ style }) {
 }
 
 const Table = (props) => {
-  return <EditTable {...props} />
+  const type = props.config.render.props.table_type === 'card' ? true : false;
+  return type ? <CardTable {...props} /> : <EditTable {...props} />
 }
 
 export default HOComponent(Table);

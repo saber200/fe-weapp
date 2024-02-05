@@ -3,6 +3,7 @@ import { View } from '@tarojs/components'
 import { Form, Cell, Input, Button } from "@taroify/core"
 import { useEffect, useState } from 'react'
 import { getCurrentInstance } from '@tarojs/runtime'
+import apis from '@/utils/apis';
 import './index.scss'
 
 const instance = getCurrentInstance();
@@ -18,8 +19,7 @@ export default function Login() {
     password: '',
     access_token: '',
     expires_in: 0,
-    isLogin: false,
-    cookies: []
+    isLogin: false
   });
 
   // 判断是否登陆 & 登陆是否过期
@@ -36,53 +36,21 @@ export default function Login() {
     }
   }
 
-  // 获取cookies
-  const getCookies = (userinfo) => {
-    const { id } = userinfo;
-    const url = `http://kc.it663.com:8020/admin/realms/master/users/${id}/impersonation`
-    return Taro.request({
-      url,
-      method: 'POST',
-      header: {
-        'Content-type': 'application/json',
-        'Authorization': `Bearer ${Taro.getStorageSync('admin_access_token')}`
-      },
-      success: function(res){
-        setState({
-          ...state,
-          cookies: res.cookies
-        })
-        return res;
-      }
-    })
-  }
-
   // 判断当前用户是否为关联用户
   const queryInfo = async () => {
     const result = await getUserList();
     const list = result.data.filter(item => item.firstName === state.openid);
-
-    // if(list.length > 0){
-    //   getCookies(list[0]).then(res => {
-    //     console.log(res.cookies)
-    //     Taro.request({
-    //       url: 'http://kc.it663.com:8020/realms/master/account',
-    //       header: {
-    //         'Content-type': 'application/json',
-    //         'Authorization': `Bearer ${Taro.getStorageSync('admin_access_token')}`,
-    //         'cookie': res.cookies.toString()
-    //       },
-    //       success: function(accountRes){
-    //         console.log(accountRes);
-    //       }
-    //     })
-    //   });
-    // }
-
-    setState({
-      ...state,
-      isUser: list.length > 0
-    })
+    if(list.length > 0){
+      const name = list[0].username;
+      apis.getUserInfo(name).then(res => {
+        setState({
+          ...state,
+          username: res.data.username,
+          password: res.data.password,
+          isLogin: true
+        });
+      });
+    }
   }
 
   // 查询用户列表
@@ -179,7 +147,6 @@ export default function Login() {
         'Content-type': 'application/x-www-form-urlencoded'
       },
       success: function (res) {
-        console.log(res);
         const {
           access_token,
           expires_in
@@ -196,8 +163,16 @@ export default function Login() {
         Taro.setStorageSync('nickName', state.nickName)
         Taro.setStorageSync('avatarUrl', state.avatarUrl)
 
-        Taro.redirectTo({
-          url: '/pages/home/index',
+        apis.setUserInfo({
+          url: '/sendUserInfo',
+          data: {
+            username: state.username,
+            password: state.password,
+          }
+        }).then(res => {
+          Taro.redirectTo({
+            url: '/pages/home/index',
+          })
         })
       }
     })
@@ -302,6 +277,10 @@ export default function Login() {
   useEffect(() => {
     getAdminToken();
   }, [])
+
+  useEffect(() => {
+    login();
+  }, [state.isLogin])
 
   return (
     <View className='index'>

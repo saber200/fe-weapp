@@ -64,14 +64,13 @@ const HOComponent = (WrappedComponent) => {
       // 事件config
       const eventConfig = handleEventConfig(event, setMockJson, mockJson);
 
-      // console.log(styConfig)
-
       this.setState({
         ...this.state,
         style: styConfig,
         config: {
           ...this.state.config,
           render: {
+            ...this.state.config.render,
             style: styConfig,
             props: propsConfig,
             event: eventConfig
@@ -94,7 +93,7 @@ const HOComponent = (WrappedComponent) => {
 
       // 处理props
       const propsConfig = handlePropsConfig(item[0].render.props);
-      
+
       this.setState({
         ...this.state,
         config: {
@@ -108,6 +107,7 @@ const HOComponent = (WrappedComponent) => {
     }
 
     render() {
+      // console.log(this.state.config.render.props.datasource, this.state.config.name);
       // 将处理后的JSON数据传递给子组件
       return <WrappedComponent {...this.props} {...this.state} />;
     }
