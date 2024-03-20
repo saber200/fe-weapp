@@ -1,10 +1,10 @@
 import Taro from '@tarojs/taro'
-// const baseUrl = 'http://154.221.31.52:5000'
-const baseUrl = 'http://localhost:5000'
+const baseUrl = 'http://154.221.31.52:5000'
+// const baseUrl = 'http://localhost:5000'
 
 
-const onRequestGet = url => {
-  const result = Taro.request({
+const get = url => {
+  return Taro.request({
     method: 'GET',
     url: `${baseUrl}${url}`,
     header: {
@@ -12,20 +12,36 @@ const onRequestGet = url => {
     },
     success: function (res) {
       return res;
+    },
+    fail: function (err) {
+      console.log(err);
+      return err;
     }
   })
-
-  return result;
 }
 
-const onRequestPOST = params => {
+const post = params => {
   const { url, data } = params;
   return Taro.request({
     method: 'POST',
-    url: `${baseUrl}${url}`,
-    data: data,
+    url,
+    data,
+    header: { 'Content-type': 'application/json' },
+    success: res => res
+  })
+}
+
+// 用户绑定账号列表
+const getWxBindList = wxid => {
+  const data = {
+    wxid: wxid
+  }
+  return Taro.request({
+    url: 'http://61.148.207.174:9092/proccess/start/master_172omb21oq_pa2imok9ad',
+    method: 'POST',
+    data,
     header: {
-      'Content-type': 'application/json',
+      'Content-type': 'application/x-www-form-urlencoded'
     },
     success: function (res) {
       return res;
@@ -33,15 +49,56 @@ const onRequestPOST = params => {
   })
 }
 
-const getPageConfigs = id => onRequestGet(`/students?id=${id}`);
-const getMenus = () => onRequestGet('/getMenus');
+// 登陆
+const onLogin = (username, password) => {
+  // 登陆
+  const url = 'http://kc.it663.com:8020/realms/master/protocol/openid-connect/token';
+  const data = {
+    username: username,
+    password: password,
+    grant_type: 'password',
+    client_id: 'security-admin-console'
+  }
+  return Taro.request({
+    url,
+    method: 'POST',
+    data,
+    header: {
+      'Content-type': 'application/x-www-form-urlencoded'
+    },
+    success: function (res) {
+      const { data } = res;
 
-const getUserInfo = username => onRequestGet(`/getUserInfo?username=${username}`);
-const setUserInfo = params => onRequestPOST(params)
+      // 当前用户登陆后，清除管理员token
+      Taro.clearStorageSync();
+      Object.keys(data).map(key => Taro.setStorageSync(key, data[key]));
+      Taro.redirectTo({ url: '/pages/home/index' })
+      return res;
+    }
+  })
+}
+
+// 页面配置文件
+const getPageConfigs = id => get(`/students?id=${id}`);
+// menus配置文件
+const getMenus = () => get('/getMenus');
+
+// 用户信息
+const getUserInfo = openid => get(`/getUserInfo?openid=${openid}`);
+// 查询用户名
+const serchUserName = openid => get(`/serchUserName?openid=${openid}`);
+// 设置用户信息
+const setUserInfo = params => post({ ...params, url: `${baseUrl}${params.url}` })
+// 获取权限accesstoken
+const getProgramsAccesstoken = params => post({ data: params, url: `http://4s.it663.com:9092/proccess/start/master_172omb21oq_center-kc-login-getAccesstoken` })
 
 export default {
   getPageConfigs,
   getMenus,
   getUserInfo,
-  setUserInfo
+  setUserInfo,
+  serchUserName,
+  getProgramsAccesstoken,
+  getWxBindList,
+  onLogin
 }

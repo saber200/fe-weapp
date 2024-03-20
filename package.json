@@ -59,6 +59,8 @@
     "axios": "^1.6.5",
     "babel-plugin-import": "^1.13.8",
     "import": "^0.0.6",
+    "keycloak-js": "^23.0.7",
+    "keycloak-react-web": "^0.1.19",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-grid-layout": "^1.4.4",

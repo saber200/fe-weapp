@@ -1,7 +1,7 @@
 import Taro from '@tarojs/taro'
 import { View } from '@tarojs/components'
-import { Tabs, Image, Button } from "@taroify/core"
-import { useEffect, useState } from 'react'
+import { Tabs, Image, Button, Toast } from "@taroify/core"
+import React, { useEffect, useState } from 'react'
 import apis from '@/utils/apis';
 import setSty from '@/utils/edit/setSty';
 import {
@@ -24,32 +24,12 @@ const icons = {
 }
 
 const TabPage = props => {
-  const { mockJson, setComponents, setMockJson, id } = props;
-
-  const getJson = async (id = 'index') => {
-    const result = await apis.getPageConfigs(id);
-    const pageConfig = result.data.json;
-    const newJsonData = [];
-
-    pageConfig.data.map(item => {
-      if (item.layout) {
-        newJsonData.push(item);
-      }
-    })
-
-    pageConfig.data = newJsonData;
-
-    setMockJson(pageConfig);
-  }
-
-  useEffect(() => {
-    getJson(id);
-  }, [id])
+  const { pageConfig, setComponents } = props;
 
   return (
     <div>
-      {mockJson.data.map((item, inx) => {
-        return setComponents(inx);
+      {pageConfig?.data?.map((item, inx) => {
+        return setComponents(item, inx);
       })}
     </div>
   )
@@ -65,25 +45,52 @@ const TabsPanie = props => {
   )
 }
 
-export default function Home() {
-  const [querylist, setQuerylist] = useState([]);
-  const [mockJson, setMockJson] = useState({ data: [] });
-  const [tabKey, setTabKey] = useState('index');
-  const [childrenKey, setChildrenKey] = useState('index');
-  const [scrollType, setScrollType] = useState('page');
-  const [userinfo] = useState({
-    nickName: Taro.getStorageSync('nickName'),
-    avatarUrl: Taro.getStorageSync('avatarUrl')
+function Home() {
+  const [state, setState] = useState({
+    querylist: [],
+    mockJson: {},
+    tabKey: 'index',
+    childrenTabKey: '',
+    scrollType: 'page',
+    pageLoading: false,
+    childrenPageLoading: false,
+    userinfo: {
+      nickName: Taro.getStorageSync('nickName'),
+      avatarUrl: Taro.getStorageSync('avatarUrl')
+    }
   })
 
-  const onChangeTabKey = (val) => {
-    // const childkey = querylist.filter(item => item.key === val)[0].children[0].value;
-    // setChildrenKey(childkey);
-    setTabKey(val);
+  // 初始化页面config & 页面menus
+  const initPageConfig = async (id = 'index', update) => {
+    const result = await apis.getPageConfigs(id);
+    const menuResult = await apis.getMenus();
+    const pageConfig = result.data.json;
+    const newJsonData = [];
+    const menuss = menuResult.data.data.filter(item => item.key !== 'index')
+
+    pageConfig.data.map(item => {
+      if (item.layout) {
+        newJsonData.push(item);
+      }
+    })
+
+    pageConfig.data = newJsonData
+
+    setState({
+      ...state,
+      mockJson: update ? {} : pageConfig,
+      querylist: update ? state.querylist : menuss,
+      scrollType: update ? state.scrollType : menuResult.data.scroll_type,
+    })
+    return pageConfig;
+  }
+
+  const onChangeTabKey = val => {
+    val !== 'user' && setState({ ...state, tabKey: val, pageLoading: true, mockJson: {} });
   }
 
   const onChangeChildrenTabKey = val => {
-    setChildrenKey(val)
+    setState({ ...state, childrenTabKey: val, childrenPageLoading: true, mockJson: {} });
   }
 
   const outLogin = () => {
@@ -93,54 +100,67 @@ export default function Home() {
     })
   }
 
-  const setComponents = (inx) => {
-    switch (mockJson?.data[inx]?.name) {
+  const setMockJson = mockJson => {
+    setState({ ...state, mockJson })
+  }
+
+  const setComponents = (item, inx) => {
+    const style = setSty(item.layout);
+    const { mockJson } = state;
+
+    switch (item.name) {
       case 'Input' || 'input':
-        return <EditInput style={setSty(mockJson.data[inx].layout)} mockIndex={inx} setMockJson={setMockJson} mockJson={mockJson} />
+        return <EditInput style={{ ...style }} mockIndex={inx} setMockJson={setMockJson} mockJson={mockJson} />
       case 'button' || 'Button':
-        return <EditButton style={setSty(mockJson.data[inx].layout)} mockIndex={inx} setMockJson={setMockJson} mockJson={mockJson} />
+        return <EditButton style={{ ...style }} mockIndex={inx} setMockJson={setMockJson} mockJson={mockJson} />
       case 'select':
-        return <EditSelect style={setSty(mockJson.data[inx].layout)} mockIndex={inx} setMockJson={setMockJson} mockJson={mockJson} />
+        return <EditSelect style={{ ...style }} mockIndex={inx} setMockJson={setMockJson} mockJson={mockJson} />
       case 'Table':
-        return <EditTable style={setSty(mockJson.data[inx].layout)} mockIndex={inx} setMockJson={setMockJson} mockJson={mockJson} />
+        return <EditTable style={{ ...style }} mockIndex={inx} setMockJson={setMockJson} mockJson={mockJson} />
       default:
         return null
     }
   }
 
-  const initMenus = async () => {
-    const menuResult = await apis.getMenus();
-    const menuss = menuResult.data.data.filter(item => item.key !== 'index')
-    console.log(menuResult.data.scroll_type)
-    setScrollType(menuResult.data.scroll_type);
-    setQuerylist(menuss);
-  }
+  useEffect(() => {
+    initPageConfig();
+  }, [])
 
   useEffect(() => {
-    initMenus();
-  }, [])
+    state.pageLoading && !state.childrenPageLoading && initPageConfig(state.tabKey, true).then(mockJson => {
+      setState({ ...state, mockJson, pageLoading: false });
+    })
+  }, [state.pageLoading])
+
+  useEffect(() => {
+    state.childrenPageLoading && initPageConfig(state.childrenTabKey, true).then(mockJson => {
+      setState({ ...state, mockJson, childrenPageLoading: false });
+    })
+  }, [state.childrenPageLoading])
 
   return (
     <View className='index'>
       <Tabs
-        defaultValue={tabKey}
+        defaultValue={state.tabKey}
         onChange={onChangeTabKey}
-        swipeable={scrollType === 'page'}
-        lazyRender
+        swipeable={state.scrollType === 'page'}
         className='tabs-box'
+        lazyRender
       >
         <Tabs.TabPane
           value="index"
           title={<TabsPanie label='欢迎页' icon={icons.icon_1} />}
         >
-          <TabPage
-            setComponents={setComponents}
-            mockJson={mockJson}
-            id="index"
-            setMockJson={setMockJson}
-          />
+          {!state.mockJson.data ? null : (
+            <TabPage
+              setComponents={setComponents}
+              pageConfig={state.mockJson}
+              setMockJson={setMockJson}
+              id="index"
+            />
+          )}
         </Tabs.TabPane>
-        {querylist.map(item => {
+        {state.querylist.map(item => {
           return (
             <Tabs.TabPane
               title={<TabsPanie label={item.label} icon={icons[item.icon_name]} />}
@@ -150,9 +170,9 @@ export default function Home() {
             >
               <Tabs
                 defaultValue={item.children[0].value}
-                swipeable={scrollType === 'tabs'}
-                lazyRender
+                swipeable={state.scrollType === 'tabs'}
                 onChange={onChangeChildrenTabKey}
+                lazyRender
               >
                 {item.children.map(children => {
                   return (
@@ -160,12 +180,14 @@ export default function Home() {
                       title={children.label}
                       value={children.value}
                     >
-                      <TabPage
-                        mockJson={mockJson}
-                        setMockJson={setMockJson}
-                        setComponents={setComponents}
-                        id={childrenKey}
-                      />
+                      {!state.mockJson.data ? null : (
+                        <TabPage
+                          pageConfig={state.mockJson}
+                          setMockJson={setMockJson}
+                          setComponents={setComponents}
+                          id={children.key}
+                        />
+                      )}
                     </Tabs.TabPane>
                   )
                 })}
@@ -179,9 +201,9 @@ export default function Home() {
         >
           <div className='out_login_page'>
             <div className="avatar-wrapper">
-              <Image src={userinfo.avatarUrl}></Image>
+              <Image src={state.userinfo.avatarUrl}></Image>
             </div>
-            <div>{userinfo.nickName}</div>
+            <div>{state.userinfo.nickName}</div>
             <Button className='out_login_btn' color="primary" onClick={outLogin}>退出登陆</Button>
           </div>
         </Tabs.TabPane>
@@ -189,3 +211,5 @@ export default function Home() {
     </View>
   )
 }
+
+export default React.memo(Home);

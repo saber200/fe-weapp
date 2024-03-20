@@ -1,9 +1,17 @@
 import { View, Image, Input, Button } from '@tarojs/components'
 import Taro, { useLoad } from '@tarojs/taro'
 import { useEffect, useState } from 'react'
+import apis from '@/utils/apis';
 import './index.scss'
 
+const keycloakSetting = {
+  url: 'http://kc.it663.com:8090',
+  realm: 'module_test',
+  clientId: 'security-admin-console'
+};
+
 export default function Index() {
+  const [keycloak, setKeycloak] = useState();
   const [state, setState] = useState({
     avatarUrl: '',
     nickName: '',
@@ -30,7 +38,8 @@ export default function Index() {
   const getOpenId = async () => {
     const res = await Taro.login();
     const { code } = res;
-    const appid = 'wxb8304664218ce979';
+    // const appid = 'wxb8304664218ce979';
+    const appid = 'wx41012d1cad183936';
     const secret = '468d6417c395e992b7064c785eae2534';
     const data = {
       appid,
@@ -49,10 +58,18 @@ export default function Index() {
       url,
       method: 'GET',
       data,
-      success: function (res) {
+      success: (res) => {
         const { openid, session_key } = res.data;
-        Taro.redirectTo({
-          url: `/pages/login/index?openid=${openid}&session_key=${session_key}&avatarUrl=${state.avatarUrl}&nickName=${state.nickName}`,
+        apis.getUserInfo(openid).then(result => {
+          if(result.data.code == 1){
+            Taro.redirectTo({
+              url: `/pages/login/index?openid=${openid}&session_key=${session_key}&avatarUrl=${state.avatarUrl}&nickName=${state.nickName}`,
+            })
+          }else{
+            const userinfo = result.data;
+            const { username, password } = userinfo;
+            apis.onLogin(username, password);
+          }
         })
       },
       fail: function(err){
@@ -89,7 +106,7 @@ export default function Index() {
     })
   }
 
-  const getAdminToken = () => {
+  const getAdminToken = async () => {
     const nowTime = new Date().getTime();
     const access_token = Taro.getStorageSync('access_token');
     const expires = Taro.getStorageSync('expires');
@@ -108,12 +125,12 @@ export default function Index() {
     Taro.clearStorageSync();
 
     // 注册新用户，获取管理员token用来创建用户
-    const url = 'http://kc.it663.com:8020/realms/master/protocol/openid-connect/token';
+    const url = 'http://4s.it663.com:9092/proccess/start/master_172omb21oq_center-kc-login';
     const data = {
-      username: 'admin',
-      password: 'admin',
-      grant_type: 'password',
-      client_id: 'security-admin-console'
+      v_client: 'hos_rm4y6',
+      v_username: 'dev',
+      v_password: 'dev',
+      v_realm: 'hos'
     }
 
     Taro.request({
@@ -126,32 +143,37 @@ export default function Index() {
       success: function (res) {
         const {
           access_token,
-          expires_in
-        } = res.data;
+          expires_in,
+          refresh_token
+        } = res.data.data;
 
         const time = new Date().getTime();
         const expires_time = time + (expires_in * 1000);
 
         Taro.setStorageSync('admin_access_token', access_token)
+        Taro.setStorageSync('admin_refresh_token', refresh_token)
         Taro.setStorageSync('admin_expires', expires_time)
       }
     })
+
+    return true;
   }
 
   useEffect(() => {
-    const expires = Taro.getStorageSync('expires');
+    const expires = Taro.getStorageSync('expires_in');
     const nowTime = new Date().getTime();
 
-    if (expires || nowTime < expires) {
+    if (expires) {
       Taro.redirectTo({
         url: '/pages/home/index',
       })
     }else{
-      getAdminToken();
-      setState({
-        ...state,
-        isLogin: false
-      })
+      // getAdminToken().then(res => {
+      //   setState({
+      //     ...state,
+      //     isLogin: false
+      //   })
+      // });
     }
   }, [])
 

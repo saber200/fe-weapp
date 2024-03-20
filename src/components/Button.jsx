@@ -3,13 +3,13 @@ import HOComponent from '@/components/Create';
 import { Button } from '@taroify/core';
 
 const EditButton = ({ style, config }) => {
-  const { props: attribute } = config.render
+  const { props: attribute } = config.render;
 
   return (
     <Button
-    style={{ ...style, fontSize: '22rpx' }}
     {...attribute}
     {...config.render.event}
+    style={{ ...style, fontSize: '22rpx' }}
     >{attribute.text}</Button>
   )
 }
