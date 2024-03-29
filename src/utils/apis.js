@@ -1,5 +1,5 @@
 import Taro from '@tarojs/taro'
-const baseUrl = 'http://154.221.31.52:5000'
+const baseUrl = 'http://api.soxcc.com:9000'
 // const baseUrl = 'http://localhost:5000'
 
 
@@ -31,6 +31,9 @@ const post = params => {
   })
 }
 
+// 登陆
+const onLogin = params => post({ ...params, url: `${baseUrl}${params.url}` });
+
 // 用户绑定账号列表
 const getWxBindList = wxid => {
   const data = {
@@ -49,34 +52,33 @@ const getWxBindList = wxid => {
   })
 }
 
-// 登陆
-const onLogin = (username, password) => {
-  // 登陆
-  const url = 'http://kc.it663.com:8020/realms/master/protocol/openid-connect/token';
-  const data = {
-    username: username,
-    password: password,
-    grant_type: 'password',
-    client_id: 'security-admin-console'
-  }
-  return Taro.request({
-    url,
-    method: 'POST',
-    data,
-    header: {
-      'Content-type': 'application/x-www-form-urlencoded'
-    },
-    success: function (res) {
-      const { data } = res;
+// const onLogin = (username, password) => {
+//   // 登陆
+//   const url = 'http://kc.it663.com:8020/realms/master/protocol/openid-connect/token';
+//   const data = {
+//     username: username,
+//     password: password,
+//     grant_type: 'password',
+//     client_id: 'security-admin-console'
+//   }
+//   return Taro.request({
+//     url,
+//     method: 'POST',
+//     data,
+//     header: {
+//       'Content-type': 'application/x-www-form-urlencoded'
+//     },
+//     success: function (res) {
+//       const { data } = res;
 
-      // 当前用户登陆后，清除管理员token
-      Taro.clearStorageSync();
-      Object.keys(data).map(key => Taro.setStorageSync(key, data[key]));
-      Taro.redirectTo({ url: '/pages/home/index' })
-      return res;
-    }
-  })
-}
+//       // 当前用户登陆后，清除管理员token
+//       Taro.clearStorageSync();
+//       Object.keys(data).map(key => Taro.setStorageSync(key, data[key]));
+//       Taro.redirectTo({ url: '/pages/home/index' })
+//       return res;
+//     }
+//   })
+// }
 
 // 页面配置文件
 const getPageConfigs = id => get(`/students?id=${id}`);
