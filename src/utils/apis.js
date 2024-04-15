@@ -1,12 +1,27 @@
 import Taro from '@tarojs/taro'
+import { getCurrentPagePath } from './utils';
 const baseUrl = 'http://api.soxcc.com:9000'
-// const baseUrl = 'http://localhost:5000'
 
+const interceptor = async (chain) => {
+  Taro.showLoading();
+  const refreshToken = Taro.getStorageSync('refreshToken');
+  const requestParams = chain.requestParams
+  const path = getCurrentPagePath();
+  
+  if(!refreshToken && path !== 'pages/login/index'){
+    Taro.reLaunch({ url: '/pages/login/index' });
+    return false;
+  }else{
+    return chain.proceed(requestParams)
+  }
+}
+
+Taro.addInterceptor(interceptor);
 
 const get = url => {
   return Taro.request({
     method: 'GET',
-    url: `${baseUrl}${url}`,
+    url: `${url}`,
     header: {
       'Content-type': 'application/json',
     },
@@ -21,18 +36,30 @@ const get = url => {
 }
 
 const post = params => {
-  const { url, data } = params;
+  const { url, data, header } = params;
   return Taro.request({
     method: 'POST',
     url,
     data,
-    header: { 'Content-type': 'application/json' },
+    header: header || { 'Content-Type': 'application/json' },
     success: res => res
   })
 }
 
 // 登陆
-const onLogin = params => post({ ...params, url: `${baseUrl}${params.url}` });
+const onLogin = params => post({ ...params, url: `${baseUrl}/api/login` });
+
+// 解绑
+const unBind = params => post({ ...params, url: `${baseUrl}/api/unbind` });
+
+// 绑定
+const onBind = params => post({ ...params, url: `${baseUrl}/api/bind` });
+
+// 刷新access_token
+const resetToken = params => post({ ...params, url: 'http://kc.it663.com:8090/realms/hos/protocol/openid-connect/token' });
+
+// 查询menus
+const getMenus = () => get('http://platform-publish.soxcc.com/apps/data/hos/rm4y6/menu.json?header=Authorization');
 
 // 用户绑定账号列表
 const getWxBindList = wxid => {
@@ -52,38 +79,8 @@ const getWxBindList = wxid => {
   })
 }
 
-// const onLogin = (username, password) => {
-//   // 登陆
-//   const url = 'http://kc.it663.com:8020/realms/master/protocol/openid-connect/token';
-//   const data = {
-//     username: username,
-//     password: password,
-//     grant_type: 'password',
-//     client_id: 'security-admin-console'
-//   }
-//   return Taro.request({
-//     url,
-//     method: 'POST',
-//     data,
-//     header: {
-//       'Content-type': 'application/x-www-form-urlencoded'
-//     },
-//     success: function (res) {
-//       const { data } = res;
-
-//       // 当前用户登陆后，清除管理员token
-//       Taro.clearStorageSync();
-//       Object.keys(data).map(key => Taro.setStorageSync(key, data[key]));
-//       Taro.redirectTo({ url: '/pages/home/index' })
-//       return res;
-//     }
-//   })
-// }
-
 // 页面配置文件
 const getPageConfigs = id => get(`/students?id=${id}`);
-// menus配置文件
-const getMenus = () => get('/getMenus');
 
 // 用户信息
 const getUserInfo = openid => get(`/getUserInfo?openid=${openid}`);
@@ -102,5 +99,8 @@ export default {
   serchUserName,
   getProgramsAccesstoken,
   getWxBindList,
-  onLogin
+  onLogin,
+  onBind,
+  unBind,
+  resetToken
 }

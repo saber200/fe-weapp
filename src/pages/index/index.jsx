@@ -1,5 +1,5 @@
 import { View, Image, Input, Button } from '@tarojs/components'
-import Taro, { useLoad } from '@tarojs/taro'
+import Taro from '@tarojs/taro'
 import { useEffect, useState } from 'react'
 import apis from '@/utils/apis';
 import './index.scss'
@@ -11,12 +11,6 @@ export default function Index() {
     avatarUrl: '',
     nickName: ''
   });
-  const loginParams = {
-    url: '/api/login',
-    appid: 'wx41012d1cad183936',
-    code: '0f1sAD100XlwNR1bdE300aXdZ70sAD13',
-    kc: 'hos'
-  }
 
   const onChooseAvatar = async (e) => {
     setState({
@@ -51,10 +45,40 @@ export default function Index() {
   }
 
   const login = async () => {
-    const result = await onLogin(loginParams);
-
-    console.log(result);
+    const codeInfo = await Taro.login();
+    const loginParams = {
+      data: {
+        appid: 'wx41012d1cad183936',
+        code: codeInfo.code,
+        kc: 'hos'
+      }
+    }
+    onLogin(loginParams).then(res => {
+      const statusCode = res.data.code;
+      switch(statusCode){
+        case 0:
+          Object.keys(res.data.data).map(key => {
+            const value = res.data.data[key];
+            Taro.setStorageSync(key, value);
+          })
+          Taro.reLaunch({ url: '/pages/home/index' })
+          break;
+        case 100:
+          Taro.reLaunch({ url: '/pages/login/index' })
+          break;
+        default:
+          break
+      }
+    })
   }
+
+  useEffect(() => {
+    Taro.showLoading();
+    const refreshToken = Taro.getStorageSync('refreshToken');
+    if(refreshToken){
+      Taro.reLaunch({ url: '/pages/home/index' })
+    }
+  }, [])
 
   return (
     <View className='index'>

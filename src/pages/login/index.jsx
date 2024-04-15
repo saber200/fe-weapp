@@ -1,7 +1,8 @@
 import { View } from '@tarojs/components'
 import { Form, Cell, Input, Button } from "@taroify/core"
-import { useEffect, useState } from 'react'
-import { PROPS, getCurrentInstance } from '@tarojs/runtime'
+import Taro from '@tarojs/taro'
+import { useState } from 'react'
+import { getCurrentInstance } from '@tarojs/runtime'
 import apis from '@/utils/apis';
 import './index.scss'
 
@@ -9,33 +10,34 @@ const instance = getCurrentInstance();
 
 export default function Login() {
   const [state, setState] = useState({
-    openid: instance.router.params.openid,
-    session_key: instance.router.params.session_key,
     nickName: instance.router.params.nickName,
     avatarUrl: instance.router.params.avatarUrl,
-    isUser: false,
     username: '',
     password: '',
-    access_token: '',
-    expires_in: 0,
-    isLogin: false
   });
 
   const login = async () => {
-    apis.onLogin(state.username, state.password).then(async res => {
-      console.log(res);
-      const data = {
-        username: state.username,
+    const codeInfo = await Taro.login();
+    const params = {
+      data: {
+        account: state.username,
         password: state.password,
-        openid: state.openid
+        appid: 'wx41012d1cad183936',
+        kc: 'hos',
+        code: codeInfo.code
       }
-      const result = await apis.setUserInfo({ url: '/sendUserInfo', data });
-    })
-  }
+    }
 
-  useEffect(() => {
-    console.log(state)
-  }, [])
+    apis.onBind(params).then(res => {
+      if(res.data.code === 0){
+        Object.keys(res.data.data).map(key => {
+          const value = res.data.data[key];
+          Taro.setStorageSync(key, value);
+        })
+        Taro.reLaunch({ url: '/pages/home/index' })
+      }
+    });
+  }
 
   return (
     <View className='index'>
@@ -56,24 +58,9 @@ export default function Login() {
         </Cell.Group>
         <View style={{ margin: "16px" }}>
           <Button shape="round" block color="success" onClick={login}>
-            登录
+            绑定
           </Button>
         </View>
-        {/* {
-          state.isLogin ? (
-            <View style={{ margin: "16px" }}>
-              <Button shape="round" block color="success" onClick={login}>
-                登录
-              </Button>
-            </View>
-          ) : (
-            <View style={{ margin: "16px" }}>
-              <Button shape="round" block color="success" onClick={register}>
-                注册
-              </Button>
-            </View>
-          )
-        } */}
       </Form>
     </View>
   )

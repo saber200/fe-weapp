@@ -123,20 +123,35 @@ function Home() {
   }
 
   useEffect(() => {
-    initPageConfig();
+    const arr = [];
+    apis.getMenus().then(res => {
+      res.data.forEach(item => {
+        item.level === 1 || item.pid === '9szjp' && arr.push(item);
+      })
+      console.log(JSON.stringify(arr));
+    })
   }, [])
 
-  useEffect(() => {
-    state.pageLoading && !state.childrenPageLoading && initPageConfig(state.tabKey, true).then(mockJson => {
-      setState({ ...state, mockJson, pageLoading: false });
-    })
-  }, [state.pageLoading])
+  // useEffect(() => {
+  //   const refreshToken = Taro.getStorageSync('refreshToken');
+  //   console.log(refreshToken);
+  // }, [])
 
-  useEffect(() => {
-    state.childrenPageLoading && initPageConfig(state.childrenTabKey, true).then(mockJson => {
-      setState({ ...state, mockJson, childrenPageLoading: false });
-    })
-  }, [state.childrenPageLoading])
+  // useEffect(() => {
+  //   initPageConfig();
+  // }, [])
+
+  // useEffect(() => {
+  //   state.pageLoading && !state.childrenPageLoading && initPageConfig(state.tabKey, true).then(mockJson => {
+  //     setState({ ...state, mockJson, pageLoading: false });
+  //   })
+  // }, [state.pageLoading])
+
+  // useEffect(() => {
+  //   state.childrenPageLoading && initPageConfig(state.childrenTabKey, true).then(mockJson => {
+  //     setState({ ...state, mockJson, childrenPageLoading: false });
+  //   })
+  // }, [state.childrenPageLoading])
 
   return (
     <View className='index'>
