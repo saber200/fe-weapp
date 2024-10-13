@@ -48,7 +48,7 @@ const HOComponent = (WrappedComponent) => {
         pageConfig: mockJson,
         setMockJson,
         mockIndex,
-        config: mockJson.data[mockIndex],
+        config: mockJson.config[mockIndex],
       };
     }
 

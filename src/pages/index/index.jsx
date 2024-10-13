@@ -20,15 +20,14 @@ export default function Index() {
   }
 
   const onSubmit = () => {
+    Taro.showLoading();
     if (!state.nickName) {
       Taro.showToast({
         title: '请输入用户名',
         mask: true,
         icon: 'none',
         success: function () {
-          setTimeout(() => {
-            Taro.hideToast();
-          }, 1000);
+          Taro.hideToast();
         }
       })
       return false;
@@ -53,10 +52,15 @@ export default function Index() {
         kc: 'hos'
       }
     }
+
+    console.log(loginParams)
+
     onLogin(loginParams).then(res => {
+      Taro.hideLoading();
       const statusCode = res.data.code;
       switch(statusCode){
         case 0:
+          Taro.hideToast();
           Object.keys(res.data.data).map(key => {
             const value = res.data.data[key];
             Taro.setStorageSync(key, value);
@@ -64,6 +68,7 @@ export default function Index() {
           Taro.reLaunch({ url: '/pages/home/index' })
           break;
         case 100:
+          Taro.hideToast();
           Taro.reLaunch({ url: '/pages/login/index' })
           break;
         default:
@@ -73,7 +78,6 @@ export default function Index() {
   }
 
   useEffect(() => {
-    Taro.showLoading();
     const refreshToken = Taro.getStorageSync('refreshToken');
     if(refreshToken){
       Taro.reLaunch({ url: '/pages/home/index' })

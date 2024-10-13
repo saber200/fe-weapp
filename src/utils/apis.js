@@ -26,9 +26,11 @@ const get = url => {
       'Content-type': 'application/json',
     },
     success: function (res) {
+      Taro.hideLoading();
       return res;
     },
     fail: function (err) {
+      Taro.hideLoading();
       console.log(err);
       return err;
     }
@@ -42,7 +44,10 @@ const post = params => {
     url,
     data,
     header: header || { 'Content-Type': 'application/json' },
-    success: res => res
+    success: res => {
+      Taro.hideLoading();
+      return res
+    }
   })
 }
 
@@ -54,6 +59,9 @@ const unBind = params => post({ ...params, url: `${baseUrl}/api/unbind` });
 
 // 绑定
 const onBind = params => post({ ...params, url: `${baseUrl}/api/bind` });
+
+// 页面配置文件
+const getPageConfigs = params => post({ ...params, url: `/students` })
 
 // 刷新access_token
 const resetToken = params => post({ ...params, url: 'http://kc.it663.com:8090/realms/hos/protocol/openid-connect/token' });
@@ -78,9 +86,6 @@ const getWxBindList = wxid => {
     }
   })
 }
-
-// 页面配置文件
-const getPageConfigs = id => get(`/students?id=${id}`);
 
 // 用户信息
 const getUserInfo = openid => get(`/getUserInfo?openid=${openid}`);

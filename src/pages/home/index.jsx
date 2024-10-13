@@ -15,6 +15,7 @@ import {
   Bars,
   FriendsOutlined
 } from "@taroify/icons"
+import demoJson from '@/demo/demo';
 import './index.scss';
 
 const icons = {
@@ -26,9 +27,11 @@ const icons = {
 const TabPage = props => {
   const { pageConfig, setComponents } = props;
 
+  console.log(pageConfig)
+
   return (
     <div>
-      {pageConfig?.data?.map((item, inx) => {
+      {pageConfig?.config?.map((item, inx) => {
         return setComponents(item, inx);
       })}
     </div>
@@ -62,24 +65,25 @@ function Home() {
 
   // 初始化页面config & 页面menus
   const initPageConfig = async (id = 'index', update) => {
-    const result = await apis.getPageConfigs(id);
+    // const result = await apis.getPageConfigs(id);
     const menuResult = await apis.getMenus();
-    const pageConfig = result.data.json;
+    // const pageConfig = result.data.json;
+    const pageConfig = demoJson;
     const newJsonData = [];
-    const menuss = menuResult.data.data.filter(item => item.key !== 'index')
+    // const menuss = menuResult.data.data.filter(item => item.key !== 'index')
 
-    pageConfig.data.map(item => {
+    pageConfig.config.map(item => {
       if (item.layout) {
         newJsonData.push(item);
       }
     })
 
-    pageConfig.data = newJsonData
+    pageConfig.config = newJsonData;
 
     setState({
       ...state,
       mockJson: update ? {} : pageConfig,
-      querylist: update ? state.querylist : menuss,
+      // querylist: update ? state.querylist : menuss,
       scrollType: update ? state.scrollType : menuResult.data.scroll_type,
     })
     return pageConfig;
@@ -106,6 +110,7 @@ function Home() {
 
   const setComponents = (item, inx) => {
     const style = setSty(item.layout);
+    console.log(style)
     const { mockJson } = state;
 
     switch (item.name) {
@@ -123,12 +128,19 @@ function Home() {
   }
 
   useEffect(() => {
+    Taro.hideLoading();
     const arr = [];
     apis.getMenus().then(res => {
       res.data.forEach(item => {
-        item.level === 1 || item.pid === '9szjp' && arr.push(item);
+        if(item.level == 1 && item.show_menu == 1){
+          arr.push(item);
+        }
       })
-      console.log(JSON.stringify(arr));
+
+      setState({
+        ...state,
+        querylist: arr
+      })
     })
   }, [])
 
@@ -137,9 +149,9 @@ function Home() {
   //   console.log(refreshToken);
   // }, [])
 
-  // useEffect(() => {
-  //   initPageConfig();
-  // }, [])
+  useEffect(() => {
+    initPageConfig();
+  }, [])
 
   // useEffect(() => {
   //   state.pageLoading && !state.childrenPageLoading && initPageConfig(state.tabKey, true).then(mockJson => {
@@ -166,7 +178,7 @@ function Home() {
           value="index"
           title={<TabsPanie label='欢迎页' icon={icons.icon_1} />}
         >
-          {!state.mockJson.data ? null : (
+          {!state.mockJson.config ? null : (
             <TabPage
               setComponents={setComponents}
               pageConfig={state.mockJson}
@@ -178,35 +190,11 @@ function Home() {
         {state.querylist.map(item => {
           return (
             <Tabs.TabPane
-              title={<TabsPanie label={item.label} icon={icons[item.icon_name]} />}
+              title={<TabsPanie label={item.name} icon={icons[item.icon_name]} />}
               value={item.key}
               className='tabs-box'
               style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}
             >
-              <Tabs
-                defaultValue={item.children[0].value}
-                swipeable={state.scrollType === 'tabs'}
-                onChange={onChangeChildrenTabKey}
-                lazyRender
-              >
-                {item.children.map(children => {
-                  return (
-                    <Tabs.TabPane
-                      title={children.label}
-                      value={children.value}
-                    >
-                      {!state.mockJson.data ? null : (
-                        <TabPage
-                          pageConfig={state.mockJson}
-                          setMockJson={setMockJson}
-                          setComponents={setComponents}
-                          id={children.key}
-                        />
-                      )}
-                    </Tabs.TabPane>
-                  )
-                })}
-              </Tabs>
             </Tabs.TabPane>
           )
         })}
